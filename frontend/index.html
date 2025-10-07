@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chatbot with Task Automation</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Assistant</h1>
+            <p class="subtitle">Powered by TensorFlow & LangChain</p>
+        </header>
+
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages"></div>
+            
+            <div class="chat-input-container">
+                <div class="input-wrapper">
+                    <input 
+                        type="text" 
+                        id="messageInput" 
+                        placeholder="Type your message or command..."
+                        autocomplete="off"
+                    >
+                    <button id="sendButton" class="send-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <div class="capabilities">
+                <h3>Capabilities</h3>
+                <p class="mode-subtitle">Click to activate mode</p>
+                <ul id="capabilitiesList">
+                    <li data-mode="file_operation">File Operations</li>
+                    <li data-mode="schedule_reminder">Schedule Reminders</li>
+                    <li data-mode="run_script">Run Scripts</li>
+                    <li data-mode="search">Search & Query</li>
+                    <li data-mode="system_info">System Info</li>
+                    <li data-mode="chat" class="chat-mode">General Chat</li>
+                </ul>
+                <div class="active-mode" id="activeMode">
+                    <span class="mode-label">Active Mode:</span>
+                    <span class="mode-value">General Chat</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
