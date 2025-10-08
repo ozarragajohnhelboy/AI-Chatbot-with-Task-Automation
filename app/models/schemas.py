@@ -17,6 +17,7 @@ class IntentType(str, Enum):
     RUN_SCRIPT = "run_script"
     SEARCH = "search"
     SYSTEM_INFO = "system_info"
+    EXCEL_OPERATION = "excel_operation"
     UNKNOWN = "unknown"
 
 

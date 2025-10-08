@@ -117,6 +117,7 @@ function setActiveMode(mode, modeName) {
         'run_script': "Script Runner mode activated. I'll execute scripts and programs for you.",
         'search': "Search mode activated. I'll help you find files and information.",
         'system_info': "System Info mode activated. I'll provide system information and status.",
+        'excel_operation': "Excel Operations mode activated. I'll help you organize, clean, and sort Excel data.",
         'chat': "General Chat mode activated. I can help with anything!"
     };
     

@@ -22,10 +22,45 @@ class IntentPredictor:
             IntentType.RUN_SCRIPT,
             IntentType.SEARCH,
             IntentType.SYSTEM_INFO,
+            IntentType.EXCEL_OPERATION,
             IntentType.UNKNOWN,
         ]
         
+        self._load_trained_model()
         self._initialize_fallback()
+    
+    def _load_trained_model(self):
+        model_path = Path("models/saved_models/intent_classifier.keras")
+        intent_map_path = Path("models/saved_models/intent_map.json")
+        
+        if model_path.exists() and intent_map_path.exists():
+            try:
+                self.model = tf.keras.models.load_model(model_path)
+                
+                with open(intent_map_path, 'r') as f:
+                    intent_map = json.load(f)
+                
+                self.tokenizer = self._load_tokenizer()
+                logger.info(f"Loaded trained model from {model_path}")
+            except Exception as e:
+                logger.warning(f"Could not load trained model: {e}")
+                self.model = None
+        else:
+            logger.info("No trained model found, using fallback logic only")
+    
+    def _load_tokenizer(self):
+        from tensorflow.keras.preprocessing.text import Tokenizer
+        
+        tokenizer = Tokenizer(oov_token="<OOV>")
+        tokenizer.fit_on_texts([
+            "hello", "hi", "how are you", "what's up", "good morning",
+            "open file", "create folder", "delete document", "move file to",
+            "remind me", "schedule event", "set alarm",
+            "run script", "execute program",
+            "search for", "find file", "where is",
+            "what time is it", "system info", "cpu usage",
+        ])
+        return tokenizer
     
     def _initialize_fallback(self):
         self.patterns = {
@@ -49,6 +84,13 @@ class IntentPredictor:
                 r'\b(system|cpu|memory|disk|process)\b.*\b(info|status|usage)\b',
                 r'\bwhat.*\b(time|date|weather)\b',
             ],
+            IntentType.EXCEL_OPERATION: [
+                r'\b(excel|spreadsheet|csv|xlsx|xls)\b',
+                r'\b(remove|delete|eliminate)\s+(duplicates|duplicate)\b',
+                r'\b(sort|organize|arrange)\s+(alphabetically|alphabetical)\b',
+                r'\b(clean|organize|arrange)\s+(data|excel|spreadsheet)\b',
+                r'\b(remove|delete)\s+(empty|blank)\s+(rows|cells)\b',
+            ],
         }
     
     async def predict(self, text: str) -> dict:
@@ -61,6 +103,23 @@ class IntentPredictor:
         except Exception as e:
             logger.warning(f"Error in prediction, using fallback: {e}")
             return self._fallback_predict(text)
+    
+    def _model_predict(self, text: str) -> dict:
+        from tensorflow.keras.preprocessing.sequence import pad_sequences
+        
+        sequence = self.tokenizer.texts_to_sequences([text])
+        padded_sequence = pad_sequences(sequence, maxlen=50, padding='post')
+        
+        prediction = self.model.predict(padded_sequence, verbose=0)[0]
+        predicted_class_index = np.argmax(prediction)
+        confidence = float(prediction[predicted_class_index])
+        
+        predicted_intent = self.intent_labels[predicted_class_index]
+        
+        return {
+            "intent": predicted_intent,
+            "confidence": confidence,
+        }
     
     def _fallback_predict(self, text: str) -> dict:
         text_lower = text.lower()
@@ -100,6 +159,12 @@ class IntentPredictor:
                 'time', 'date', 'clock', 'calendar',
                 'system', 'computer', 'machine', 'status',
                 'info', 'information', 'details', 'stats',
+            ],
+            IntentType.EXCEL_OPERATION: [
+                'excel', 'spreadsheet', 'csv', 'xlsx', 'xls',
+                'duplicate', 'duplicates', 'remove', 'delete',
+                'sort', 'organize', 'arrange', 'alphabetical',
+                'clean', 'data', 'rows', 'cells', 'empty',
             ],
         }
         
