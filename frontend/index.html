@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Chatbot with Task Automation</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
     <div class="container">
@@ -38,14 +38,15 @@
             <div class="capabilities">
                 <h3>Capabilities</h3>
                 <p class="mode-subtitle">Click to activate mode</p>
-                <ul id="capabilitiesList">
-                    <li data-mode="file_operation">File Operations</li>
-                    <li data-mode="schedule_reminder">Schedule Reminders</li>
-                    <li data-mode="run_script">Run Scripts</li>
-                    <li data-mode="search">Search & Query</li>
-                    <li data-mode="system_info">System Info</li>
-                    <li data-mode="chat" class="chat-mode">General Chat</li>
-                </ul>
+                        <ul id="capabilitiesList">
+                            <li data-mode="file_operation">File Operations</li>
+                            <li data-mode="schedule_reminder">Schedule Reminders</li>
+                            <li data-mode="run_script">Run Scripts</li>
+                            <li data-mode="search">Search & Query</li>
+                            <li data-mode="system_info">System Info</li>
+                            <li data-mode="excel_operation">Excel Operations</li>
+                            <li data-mode="chat" class="chat-mode">General Chat</li>
+                        </ul>
                 <div class="active-mode" id="activeMode">
                     <span class="mode-label">Active Mode:</span>
                     <span class="mode-value">General Chat</span>
@@ -54,7 +55,7 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="/static/app.js"></script>
 </body>
 </html>
 

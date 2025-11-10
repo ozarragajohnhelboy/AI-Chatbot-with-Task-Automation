@@ -8,6 +8,7 @@ from automation.handlers.response_generator import ResponseGenerator
 from automation.tasks.file_operations import FileOperationTask
 from automation.tasks.reminder_task import ReminderTask
 from automation.tasks.script_runner import ScriptRunnerTask
+from automation.tasks.excel_operations import ExcelOperationTask
 from app.core.logging_config import get_logger
 
 
@@ -20,6 +21,7 @@ class CommandHandler:
         self.file_task = FileOperationTask()
         self.reminder_task = ReminderTask()
         self.script_task = ScriptRunnerTask()
+        self.excel_task = ExcelOperationTask()
     
     async def handle(
         self,
@@ -51,6 +53,9 @@ class CommandHandler:
         elif intent.type == IntentType.SYSTEM_INFO:
             return await self._handle_system_info(intent, message)
         
+        elif intent.type == IntentType.EXCEL_OPERATION:
+            return await self._handle_excel_operation(intent, message)
+        
         else:
             return await self._handle_chat(intent, message, history)
     
@@ -61,6 +66,7 @@ class CommandHandler:
             "run_script": "I can only run scripts right now. Please ask about executing scripts or programs.",
             "search": "I can only search right now. Please ask about finding files or information.",
             "system_info": "I can only provide system information right now. Please ask about time, date, or system status.",
+            "excel_operation": "I can only work with Excel files right now. Please ask about organizing, cleaning, or sorting Excel data.",
         }
         
         if active_mode == "chat":
@@ -72,6 +78,7 @@ class CommandHandler:
             "run_script": IntentType.RUN_SCRIPT,
             "search": IntentType.SEARCH,
             "system_info": IntentType.SYSTEM_INFO,
+            "excel_operation": IntentType.EXCEL_OPERATION,
         }
         
         expected_intent = mode_to_intent.get(active_mode)
@@ -346,6 +353,62 @@ class CommandHandler:
     ) -> Tuple[str, Optional[str]]:
         response = await self.response_generator.generate_system_info_response()
         return response, None
+    
+    async def _handle_excel_operation(
+        self, intent: Intent, message: str
+    ) -> Tuple[str, Optional[str]]:
+        entities = intent.entities
+        file_path = entities.get("file_path", entities.get("directory_path"))
+        
+        message_lower = message.lower()
+        
+        operation = "organize"
+        if "duplicate" in message_lower:
+            operation = "remove_duplicates"
+        elif "sort" in message_lower or "alphabetical" in message_lower:
+            operation = "sort_alphabetical"
+        elif "clean" in message_lower:
+            operation = "clean_data"
+        
+        if not file_path:
+            file_path = self._extract_excel_file_from_message(message)
+        
+        if not file_path:
+            return "I can help you organize Excel data. Please specify the Excel file path.", None
+        
+        try:
+            parameters = {
+                "operation": operation,
+                "file_path": file_path
+            }
+            result = await self.excel_task.execute(parameters)
+            
+            if result["success"]:
+                return result["message"], None
+            else:
+                return f"Error: {result['message']}", None
+                
+        except Exception as e:
+            logger.error(f"Excel operation failed: {e}")
+            return f"Sorry, I couldn't process the Excel file: {str(e)}", None
+    
+    def _extract_excel_file_from_message(self, message: str) -> Optional[str]:
+        import re
+        
+        excel_extensions = ['.xlsx', '.xls', '.csv']
+        
+        quoted = re.findall(r'["\']([^"\']+)["\']', message)
+        for quote in quoted:
+            if any(quote.lower().endswith(ext) for ext in excel_extensions):
+                return quote
+        
+        words = message.split()
+        for word in words:
+            clean_word = word.strip('.,!?"\'')
+            if any(clean_word.lower().endswith(ext) for ext in excel_extensions):
+                return clean_word
+        
+        return None
     
     async def _handle_chat(
         self, intent: Intent, message: str, history: List[Message]
