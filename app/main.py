@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from app.core.config import get_settings
 from app.core.logging_config import setup_logging, get_logger
@@ -67,9 +70,17 @@ app.include_router(chat.router, prefix="/api/v1", tags=["chat"])
 app.include_router(tasks.router, prefix="/api/v1", tags=["tasks"])
 app.include_router(conversations.router, prefix="/api/v1", tags=["conversations"])
 
+# Serve static files from frontend directory
+frontend_path = Path(__file__).parent.parent / "frontend"
+app.mount("/static", StaticFiles(directory=str(frontend_path)), name="static")
+
 
 @app.get("/")
 async def root():
+    """Serve the frontend index.html"""
+    index_path = frontend_path / "index.html"
+    if index_path.exists():
+        return FileResponse(str(index_path))
     return {
         "app": settings.APP_NAME,
         "version": settings.VERSION,
